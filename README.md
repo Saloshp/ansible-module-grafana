@@ -5,6 +5,7 @@ This module helps operating Grafana from Ansible
 
 Example:
 
+```
 - name: "Add InfluxDB datasource"
   grafana:
     server_url: "http://localhost:3000/"
@@ -15,3 +16,4 @@ Example:
     resource_name: "influxdb"
     resource_type: "influxdb"
     state: present
+```
