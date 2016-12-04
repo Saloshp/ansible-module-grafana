@@ -75,7 +75,7 @@ def datasource_update(server_url, session, resource_name, resource_type, resourc
     return response
 
   response = session.put(
-    os.path.join(server_url, 'api', 'datasources', resource_id),
+    os.path.join(server_url, 'api', 'datasources', str(resource_id)),
     data=json.dumps({
       "name": resource_name,
       "type": resource_type,
@@ -111,7 +111,7 @@ def main():
             resource_url=dict(required=False),
             resource_name=dict(required=True),
             resource_type=dict(required=False, default='influxdb'),
-            state=dict(default='present', choices=['present', 'absent']),
+            state=dict(default='present', choices=['present', 'latest', 'absent']),
         ),
         supports_check_mode=True
     )
