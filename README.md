@@ -17,3 +17,9 @@ Example:
     resource_type: "influxdb"
     state: present
 ```
+
+```bash
+#!/bin/bash
+
+apt install grafana-server
+```
