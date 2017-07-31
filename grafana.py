@@ -20,6 +20,7 @@ EXAMPLES = '''
     resource_url: "localhost:8086"
     resource_name: "influxdb"
     resource_type: "influxdb"
+    resource_isDefault: "{{ False | bool }}"
     state: present
 
 - name: "Remove InfluxDB datasource"
@@ -67,7 +68,7 @@ def get_session(server_url, login_user, login_password):
       headers={'content-type': 'application/json'})
   return session
 
-def datasource_create(server_url, session, resource_name, resource_type, resource_url, database, resource_isDefault=False, resource_access='proxy'):
+def datasource_create(server_url, session, resource_name, resource_type, resource_url, database, resource_isDefault=False, resource_access='proxy', jsonData=None):
   response = session.post(
     os.path.join(server_url, 'api', 'datasources'),
     data=json.dumps({
@@ -76,7 +77,8 @@ def datasource_create(server_url, session, resource_name, resource_type, resourc
       "url": 'http://%s' % (resource_url),
       "database": database,
       "isDefault": resource_isDefault,
-      "access": resource_access}),
+      "access": resource_access,
+      "jsonData": jsonData}),
       headers={'content-type': 'application/json'})
   return response
 
@@ -98,7 +100,7 @@ def datasource_retrieve_id(server_url, session, resource_name):
       headers={'content-type': 'application/json'})
   return response
 
-def datasource_update(server_url, session, resource_name, resource_type, resource_url, database, resource_isDefault=False, resource_access='proxy'):
+def datasource_update(server_url, session, resource_name, resource_type, resource_url, database, resource_isDefault=False, resource_access='proxy', jsonData=None):
   response = datasource_retrieve_id(server_url, session, resource_name)
   try:
     resource_id = json.loads(response.content)['id']
@@ -113,7 +115,8 @@ def datasource_update(server_url, session, resource_name, resource_type, resourc
       "url": 'http://%s' % (resource_url),
       "database": database,
       "isDefault": resource_isDefault,
-      "access": resource_access}),
+      "access": resource_access,
+      "jsonData": jsonData}),
       headers={'content-type': 'application/json'})
   return response
 
@@ -150,9 +153,12 @@ def main():
             login_password=dict(required=True),
             resource=dict(required=True, choices=['datasource', 'dashboard']),
             resource_url=dict(required=False),
+            resource_db=dict(required=False),
             resource_json_path=dict(required=False),
+            resource_json_data=dict(required=False, type='json'),
             resource_name=dict(required=False),
             resource_type=dict(required=False, default='influxdb'),
+            resource_isDefault=dict(required=False, type='bool', default=False),
             state=dict(default='present', choices=['present', 'latest', 'absent']),
         ),
         supports_check_mode=True
@@ -165,9 +171,12 @@ def main():
     login_password = module.params['login_password']
     resource = module.params['resource']
     resource_url = module.params['resource_url']
+    resource_db = module.params['resource_db']
     resource_json_path = module.params['resource_json_path']
+    resource_json_data = json.loads(module.params['resource_json_data'])
     resource_name = module.params['resource_name']
     resource_type = module.params['resource_type']
+    resource_isDefault = module.params['resource_isDefault']
     state = module.params['state']
 
     if not server_url:
@@ -177,9 +186,9 @@ def main():
 
     if resource == 'datasource':
       if state == 'present':
-        resp = datasource_create(server_url, session, resource_name, resource_type, resource_url, 'metrics', True)
+        resp = datasource_create(server_url, session, resource_name, resource_type, resource_url, resource_db, resource_isDefault, jsonData=resource_json_data)
       elif state == 'latest':
-        resp = datasource_update(server_url, session, resource_name, resource_type, resource_url, 'metrics', True)
+        resp = datasource_update(server_url, session, resource_name, resource_type, resource_url, resource_db, resource_isDefault, jsonData=resource_json_data)
       elif state == 'absent':
         resp = datasource_delete(server_url, session, resource_name)
     elif resource == 'dashboard':
