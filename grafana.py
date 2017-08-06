@@ -68,7 +68,7 @@ def get_session(server_url, login_user, login_password):
       headers={'content-type': 'application/json'})
   return session
 
-def datasource_create(server_url, session, resource_name, resource_type, resource_url, database, resource_isDefault=False, resource_access='proxy', jsonData=None):
+def datasource_create(server_url, session, resource_name, resource_type, resource_url, database, resource_isDefault=False, resource_access='proxy', json_data=None):
   response = session.post(
     os.path.join(server_url, 'api', 'datasources'),
     data=json.dumps({
@@ -78,7 +78,7 @@ def datasource_create(server_url, session, resource_name, resource_type, resourc
       "database": database,
       "isDefault": resource_isDefault,
       "access": resource_access,
-      "jsonData": jsonData}),
+      "jsonData": json_data}),
       headers={'content-type': 'application/json'})
   return response
 
@@ -100,7 +100,7 @@ def datasource_retrieve_id(server_url, session, resource_name):
       headers={'content-type': 'application/json'})
   return response
 
-def datasource_update(server_url, session, resource_name, resource_type, resource_url, database, resource_isDefault=False, resource_access='proxy', jsonData=None):
+def datasource_update(server_url, session, resource_name, resource_type, resource_url, database, resource_isDefault=False, resource_access='proxy', json_data=None):
   response = datasource_retrieve_id(server_url, session, resource_name)
   try:
     resource_id = json.loads(response.content)['id']
@@ -116,7 +116,7 @@ def datasource_update(server_url, session, resource_name, resource_type, resourc
       "database": database,
       "isDefault": resource_isDefault,
       "access": resource_access,
-      "jsonData": jsonData}),
+      "jsonData": json_data}),
       headers={'content-type': 'application/json'})
   return response
 
@@ -155,7 +155,7 @@ def main():
             resource_url=dict(required=False),
             resource_db=dict(required=False),
             resource_json_path=dict(required=False),
-            resource_json_data=dict(required=False, type='json'),
+            resource_json_data=dict(required=False, type='json', default={}),
             resource_name=dict(required=False),
             resource_type=dict(required=False, default='influxdb'),
             resource_isDefault=dict(required=False, type='bool', default=False),
@@ -186,9 +186,9 @@ def main():
 
     if resource == 'datasource':
       if state == 'present':
-        resp = datasource_create(server_url, session, resource_name, resource_type, resource_url, resource_db, resource_isDefault, jsonData=resource_json_data)
+        resp = datasource_create(server_url, session, resource_name, resource_type, resource_url, resource_db, resource_isDefault, json_data=resource_json_data)
       elif state == 'latest':
-        resp = datasource_update(server_url, session, resource_name, resource_type, resource_url, resource_db, resource_isDefault, jsonData=resource_json_data)
+        resp = datasource_update(server_url, session, resource_name, resource_type, resource_url, resource_db, resource_isDefault, json_data=resource_json_data)
       elif state == 'absent':
         resp = datasource_delete(server_url, session, resource_name)
     elif resource == 'dashboard':
